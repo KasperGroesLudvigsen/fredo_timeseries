@@ -68,17 +68,19 @@ class Fredo(nn.Module):
 
 model_input = torch.rand(24, 2, 1)
 
-fourier = fft.fft(model_input)
+#fourier = fft.fft(model_input)
 
-fourier.real
+#fourier.real
 
 #fourier.imag
 
+# TODO: Fix error
+# mat1 and mat2 shapes cannot be multiplied (48x128 and 1x128) in mixer.py
 model = Fredo(d_model=128, num_mixers=3)
 
 out = model(model_input)
 
 
-linear = nn.Linear(in_features=1, out_features=128)
+#linear = nn.Linear(in_features=1, out_features=128)
 
-out = linear(model_input)
+#out = linear(model_input)
