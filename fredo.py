@@ -1,5 +1,7 @@
-from torch import nn, Tensor
+from torch import nn, Tensor, fft
 import mixer
+import dft
+import torch
 
 class Fredo(nn.Module):
 
@@ -21,6 +23,8 @@ class Fredo(nn.Module):
         """
         super().__init__()
 
+        self.fourier_transformer = dft.DFT()
+
         self.num_mixers = num_mixers
 
         # Create the first layer of the model
@@ -31,12 +35,50 @@ class Fredo(nn.Module):
 
     def forward(self, x):
 
-        x = self.linear(x)
+        x = self.fourier_transformer.apply_fourier_transform(x)
 
+        # Extract real and imaginary numbers
+        x_real = self.fourier_transformer.extract_real(x)
+
+        x_imaginary = self.fourier_transformer.extract_imaginary(x)
+
+        # Pass through linear layer
+        x_real = self.linear(x_real)
+
+        print("Shape of x_real after first linear: {}".format(x_real.shape))
+
+        # Pass throug mixer modules
         for mixer in self.mixers:
 
-            x = mixer(x)
+            x_real = mixer(x_real)
+
+        # Combine real valued model output and imaginary numbers from model input
+        x = self.fourier_transformer.insert(model_output_real=x_real, model_input_imaginary=x_imaginary)
+
+        # Inverse transform
+        x = self.fourier_transformer.inverse(x)
 
         return x
 
 
+#sequence = Tensor(24)
+#sequence2 = Tensor(24)
+
+#model_input = torch.concat((sequence, sequence2))
+
+model_input = torch.rand(24, 2, 1)
+
+fourier = fft.fft(model_input)
+
+fourier.real
+
+#fourier.imag
+
+model = Fredo(d_model=128, num_mixers=3)
+
+out = model(model_input)
+
+
+linear = nn.Linear(in_features=1, out_features=128)
+
+out = linear(model_input)

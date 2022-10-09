@@ -26,8 +26,18 @@ class Mixer(nn.Module):
         self.linear2 = nn.Linear(in_features=num_input_features, out_features=d_model)
         self.activation = nn.ReLU()
 
-    def forward(self, model_input):
+    def forward(self, x):
         """
         Apply linear 1 and linear 2 with ReLU in between
         """
-        return self.linear2(self.activation(self.linear1(model_input)))
+
+        print("Shape of x: {}".format(x.shape))
+
+
+        x = self.linear1(x)
+
+        x = self.activation(x)
+
+        x = self.linear2(x)
+        return x
+        #return self.linear2(self.activation(self.linear1(model_input)))
