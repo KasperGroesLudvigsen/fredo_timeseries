@@ -11,6 +11,7 @@ class Fredo(nn.Module):
         self,
         d_model: int,
         num_mixers: int,
+        forecast_horizon: int,
         num_input_features: int=1
         ) -> None:
         """
@@ -20,6 +21,9 @@ class Fredo(nn.Module):
                       in the paper.
 
             num_mixers : The number of mixer layers in the model.
+
+            forecast_horizon: The desired length of the model input. Should be 48
+                              if you wish to forecast 48 hours ahead for instance
         """
         super().__init__()
 
@@ -31,7 +35,7 @@ class Fredo(nn.Module):
         self.linear = nn.Linear(in_features=num_input_features, out_features=d_model)
 
         # Create collection of Mixer modules
-        self.mixers = nn.ModuleList([mixer.Mixer(d_model=d_model, num_input_features=num_input_features) for i in range(num_mixers)])
+        self.mixers = nn.ModuleList([mixer.Mixer(d_model=d_model, num_input_features=d_model) for i in range(num_mixers)])
 
     def forward(self, x):
 
@@ -66,7 +70,9 @@ class Fredo(nn.Module):
 
 #model_input = torch.concat((sequence, sequence2))
 
-model_input = torch.rand(24, 2, 1)
+model_input = torch.rand(2, 24)
+
+#model_input = torch.rand(24, 2)
 
 #fourier = fft.fft(model_input)
 
@@ -76,11 +82,12 @@ model_input = torch.rand(24, 2, 1)
 
 # TODO: Fix error
 # mat1 and mat2 shapes cannot be multiplied (48x128 and 1x128) in mixer.py
-model = Fredo(d_model=128, num_mixers=3)
+model = Fredo(d_model=128, num_mixers=3, num_input_features=24)
 
 out = model(model_input)
 
+# it works if in_features is the same as the sequence length
+linear = nn.Linear(in_features=24, out_features=128)
 
-#linear = nn.Linear(in_features=1, out_features=128)
+out = linear(model_input)
 
-#out = linear(model_input)

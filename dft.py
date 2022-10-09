@@ -6,6 +6,38 @@ class DFT:
     def __init__(self) -> None:
         pass
 
+    def discard_zeros(x: Tensor, input_length: int):
+        """
+        According to the paper, they "only use positive frequency components" 
+        (p.5)
+        """
+
+        # As per the paper: If the input length is even
+        if input_length % 2 == 0:
+            
+            last_real_idx = input_length/2
+
+            last_imaginary_idx = (input_length/2)-1
+
+        # If input length is odd
+        else:
+
+            last_real_idx = (input_length-1)/2
+
+            last_imaginary_idx = (input_length-1)/2
+
+        # Assuming batch first
+        real = x[:, 0:last_real_idx].real
+
+        imaginary = x[:, 1:last_imaginary_idx].imag
+
+        x_cat = torch.concat((real, imaginary))
+
+        # To do: Figure out how to "concatenate them into a real-valued vector"
+
+
+
+
     def apply_fourier_transform(self, x):
         """
         Apply fast fourier transform on x and return real values of the transformed
